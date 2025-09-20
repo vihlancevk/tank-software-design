@@ -1,12 +1,18 @@
 def versions = [:]
-versions.gdx = '1.9.11'
+versions.gdx = '1.12.1'
+versions.lwjgl = '3.3.3'
 
 def deps = [:]
 
 def gdx = [:]
 gdx.gdx = "com.badlogicgames.gdx:gdx:$versions.gdx"
 gdx.backend_lwjgl3 = "com.badlogicgames.gdx:gdx-backend-lwjgl3:$versions.gdx"
-gdx.platform_desktop = "com.badlogicgames.gdx:gdx-platform:$versions.gdx:natives-desktop"
+gdx.platform = "com.badlogicgames.gdx:gdx-platform:$versions.gdx:natives-desktop"
 deps.gdx = gdx
+
+// lwjgl natives for macOS arm64
+def lwjgl = [:]
+lwjgl.lwjgl = "org.lwjgl:lwjgl:$versions.lwjgl:natives-macos-arm64"
+deps.lwjgl = lwjgl
 
 ext.deps = deps
