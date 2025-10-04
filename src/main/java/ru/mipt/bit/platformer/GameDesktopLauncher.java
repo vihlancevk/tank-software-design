@@ -6,51 +6,70 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.maps.MapRenderer;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
+import ru.mipt.bit.platformer.command.MoveCommand;
+import ru.mipt.bit.platformer.controller.EntityController;
+import ru.mipt.bit.platformer.controller.LevelController;
+import ru.mipt.bit.platformer.controller.ObstacleController;
+import ru.mipt.bit.platformer.controller.PlayerController;
 
+import java.util.List;
+
+import static com.badlogic.gdx.Input.Keys.*;
 import static com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT;
-import static ru.mipt.bit.platformer.util.GdxGameUtils.*;
+import static ru.mipt.bit.platformer.util.GdxGameUtils.createSingleLayerMapRenderer;
 
 public class GameDesktopLauncher implements ApplicationListener {
     private static final float MOVEMENT_SPEED = 0.4f;
 
-    private EntityFactory entityFactory;
-    private PlayerInputController playerInputController;
+    private final InputHandler inputHandler;
 
     private Batch batch;
-    private Level level;
-    private Player player;
+
+    private List<ObstacleController> obstacleControllers;
+    private LevelController levelController;
+    private PlayerController playerController;
+
+    public GameDesktopLauncher() {
+        inputHandler = new InputHandler();
+        setupInputHandler();
+    }
 
     @Override
     public void create() {
         batch = new SpriteBatch();
 
         TiledMap map = new TmxMapLoader().load("level.tmx");
+        EntityControllerFactory entityControllerFactory = new EntityControllerFactory(map);
 
-        entityFactory = new EntityFactory(map);
-        playerInputController = new PlayerInputController();
-
-        level = createLevel(map);
-        level.addObstacle(entityFactory.createObstacle("images/green_tree.png", 1, 3));
-
-        player = entityFactory.createPlayer("images/tank_blue.png", 1, 1, MOVEMENT_SPEED);
+        obstacleControllers = List.of(
+                entityControllerFactory.createObstacleController(
+                        "images/green_tree.png", 1, 3
+                )
+        );
+        levelController = LevelController.getInstance(
+                obstacleControllers,
+                map,
+                createSingleLayerMapRenderer(map, batch)
+        );
+        playerController = entityControllerFactory.createPlayerController(
+                "images/tank_blue.png", 1, 1, MOVEMENT_SPEED
+        );
     }
 
     @Override
     public void render() {
         clearScreen();
-
         float delta = getTimePassedSinceLastRender();
 
-        playerInputController.getDirection().ifPresent(dir -> player.move(dir, level));
+        inputHandler.handleInput(levelController, playerController);
+        playerController.update(delta);
 
-        player.update(delta);
-
-        level.render(batch);
+        levelController.render();
         batch.begin();
-        player.render(batch);
+        obstacleControllers.forEach(obstacleController -> obstacleController.render(batch));
+        playerController.render(batch);
         batch.end();
     }
 
@@ -76,13 +95,20 @@ public class GameDesktopLauncher implements ApplicationListener {
     @Override
     public void dispose() {
         batch.dispose();
-        level.dispose();
-        player.dispose();
+        obstacleControllers.forEach(EntityController::dispose);
+        levelController.dispose();
+        playerController.dispose();
     }
 
-    private Level createLevel(TiledMap map) {
-        MapRenderer renderer = createSingleLayerMapRenderer(map, batch);
-        return new Level(map, renderer);
+    private void setupInputHandler() {
+        inputHandler.setCommand(W, new MoveCommand(Direction.UP));
+        inputHandler.setCommand(UP, new MoveCommand(Direction.UP));
+        inputHandler.setCommand(S, new MoveCommand(Direction.DOWN));
+        inputHandler.setCommand(DOWN, new MoveCommand(Direction.DOWN));
+        inputHandler.setCommand(A, new MoveCommand(Direction.LEFT));
+        inputHandler.setCommand(LEFT, new MoveCommand(Direction.LEFT));
+        inputHandler.setCommand(D, new MoveCommand(Direction.RIGHT));
+        inputHandler.setCommand(RIGHT, new MoveCommand(Direction.RIGHT));
     }
 
     private void clearScreen() {
