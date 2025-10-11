@@ -1,9 +1,9 @@
-package ru.mipt.bit.platformer;
+package ru.mipt.bit.platformer.app;
 
 import com.badlogic.gdx.Gdx;
+import ru.mipt.bit.platformer.api.GameWorld;
+import ru.mipt.bit.platformer.api.Movable;
 import ru.mipt.bit.platformer.command.Command;
-import ru.mipt.bit.platformer.controller.LevelController;
-import ru.mipt.bit.platformer.controller.PlayerController;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,10 +19,10 @@ public class InputHandler {
         key2command.put(key, command);
     }
 
-    public void handleInput(LevelController levelController, PlayerController playerController) {
+    public void handleInput(GameWorld gameWorld, Movable movable) {
         for (Map.Entry<Integer, Command> entry : key2command.entrySet()) {
             if (Gdx.input.isKeyPressed(entry.getKey())) {
-                entry.getValue().execute(levelController, playerController);
+                entry.getValue().execute(gameWorld, movable);
             }
         }
     }

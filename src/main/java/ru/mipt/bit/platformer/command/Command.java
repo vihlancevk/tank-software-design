@@ -1,8 +1,8 @@
 package ru.mipt.bit.platformer.command;
 
-import ru.mipt.bit.platformer.controller.LevelController;
-import ru.mipt.bit.platformer.controller.PlayerController;
+import ru.mipt.bit.platformer.api.GameWorld;
+import ru.mipt.bit.platformer.api.Movable;
 
 public interface Command {
-    void execute(LevelController levelController, PlayerController playerController);
+    void execute(GameWorld world, Movable entity);
 }

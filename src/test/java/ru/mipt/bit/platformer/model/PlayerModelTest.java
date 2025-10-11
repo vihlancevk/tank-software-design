@@ -4,7 +4,7 @@ import com.badlogic.gdx.math.GridPoint2;
 import com.badlogic.gdx.math.Rectangle;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ru.mipt.bit.platformer.Direction;
+import ru.mipt.bit.platformer.api.GameWorld;
 import ru.mipt.bit.platformer.util.TileMovement;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 class PlayerModelTest {
-    private LevelModel levelModel;
+    private GameWorld gameWorld;
 
     private GridPoint2 startPosition;
     private Rectangle bounds;
@@ -21,7 +21,7 @@ class PlayerModelTest {
 
     @BeforeEach
     void setUp() {
-        levelModel = mock(LevelModel.class);
+        gameWorld = mock(GameWorld.class);
 
         startPosition = new GridPoint2(0, 0);
         bounds = new Rectangle(0, 0, 1, 1);
@@ -44,10 +44,10 @@ class PlayerModelTest {
     @Test
     void testMove_WhenCellIsFree_UpdatesDestinationAndProgress() {
         // Arrange
-        when(levelModel.isFree(new GridPoint2(0, 1))).thenReturn(true);
+        when(gameWorld.isFree(0, 1)).thenReturn(true);
 
         // Act
-        playerModel.move(levelModel, Direction.UP);
+        playerModel.move(gameWorld, Direction.UP);
 
         // Assert
         GridPoint2 destination = playerModel.getDestination();
@@ -59,10 +59,10 @@ class PlayerModelTest {
     @Test
     void testMove_WhenCellIsBlocked_DoesNotChangeDestination() {
         // Arrange
-        when(levelModel.isFree(new GridPoint2(0, 1))).thenReturn(false);
+        when(gameWorld.isFree(0, 1)).thenReturn(false);
 
         // Act
-        playerModel.move(levelModel, Direction.UP);
+        playerModel.move(gameWorld, Direction.UP);
 
         // Assert
         assertEquals(1f, playerModel.getProgress(), 0.0001);
@@ -73,8 +73,8 @@ class PlayerModelTest {
     @Test
     void testUpdate_CallsMovementAndIncreasesProgress() {
         // Arrange
-        when(levelModel.isFree(any())).thenReturn(true);
-        playerModel.move(levelModel, Direction.RIGHT);
+        when(gameWorld.isFree(any(), any())).thenReturn(true);
+        playerModel.move(gameWorld, Direction.RIGHT);
 
         // Act
         float oldProgress = playerModel.getProgress();
@@ -89,8 +89,8 @@ class PlayerModelTest {
     @Test
     void testUpdate_WhenProgressReachesOne_PositionUpdated() {
         // Arrange
-        when(levelModel.isFree(any())).thenReturn(true);
-        playerModel.move(levelModel, Direction.UP);
+        when(gameWorld.isFree(any(), any())).thenReturn(true);
+        playerModel.move(gameWorld, Direction.UP);
 
         // Act
         playerModel.update(1f);

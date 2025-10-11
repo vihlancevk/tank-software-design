@@ -3,7 +3,7 @@ package ru.mipt.bit.platformer.model;
 import com.badlogic.gdx.math.GridPoint2;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
-import ru.mipt.bit.platformer.Direction;
+import ru.mipt.bit.platformer.api.GameWorld;
 import ru.mipt.bit.platformer.util.TileMovement;
 
 import static ru.mipt.bit.platformer.util.GdxGameUtils.continueProgress;
@@ -42,7 +42,7 @@ public class PlayerModel extends EntityModel {
         return progress;
     }
 
-    public void move(LevelModel levelModel, Direction direction) {
+    public void move(GameWorld gameWorld, Direction direction) {
         if (!MathUtils.isEqual(progress, 1f)) {
             return;
         }
@@ -50,7 +50,7 @@ public class PlayerModel extends EntityModel {
         GridPoint2 newDest = new GridPoint2(
                 position.x + direction.dx, position.y + direction.dy
         );
-        if (levelModel.isFree(newDest)) {
+        if (gameWorld.isFree(newDest.x, newDest.y)) {
             destination.set(newDest);
             progress = 0f;
         }

@@ -1,8 +1,8 @@
 package ru.mipt.bit.platformer.command;
 
-import ru.mipt.bit.platformer.Direction;
-import ru.mipt.bit.platformer.controller.LevelController;
-import ru.mipt.bit.platformer.controller.PlayerController;
+import ru.mipt.bit.platformer.model.Direction;
+import ru.mipt.bit.platformer.api.GameWorld;
+import ru.mipt.bit.platformer.api.Movable;
 
 public class MoveCommand implements Command {
     private final Direction direction;
@@ -12,7 +12,7 @@ public class MoveCommand implements Command {
     }
 
     @Override
-    public void execute(LevelController levelController, PlayerController playerController) {
-        playerController.move(levelController, direction);
+    public void execute(GameWorld world, Movable entity) {
+        entity.move(world, direction);
     }
 }
