@@ -73,7 +73,7 @@ class PlayerModelTest {
     @Test
     void testUpdate_CallsMovementAndIncreasesProgress() {
         // Arrange
-        when(gameWorld.isFree(any(), any())).thenReturn(true);
+        when(gameWorld.isFree(anyInt(), anyInt())).thenReturn(true);
         playerModel.move(gameWorld, Direction.RIGHT);
 
         // Act
@@ -89,7 +89,7 @@ class PlayerModelTest {
     @Test
     void testUpdate_WhenProgressReachesOne_PositionUpdated() {
         // Arrange
-        when(gameWorld.isFree(any(), any())).thenReturn(true);
+        when(gameWorld.isFree(anyInt(), anyInt())).thenReturn(true);
         playerModel.move(gameWorld, Direction.UP);
 
         // Act

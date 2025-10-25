@@ -31,7 +31,7 @@ dependencies {
     implementation deps.gdx.platform
 
     if (Os.isFamily(Os.FAMILY_MAC)) {
-        runtimeOnly deps.lwjgl.lwjgl
+        runtimeOnly deps.lwjgl.lwjgl_natives
     }
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'

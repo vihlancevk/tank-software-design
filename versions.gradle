@@ -12,7 +12,7 @@ deps.gdx = gdx
 
 // lwjgl natives for macOS arm64
 def lwjgl = [:]
-lwjgl.lwjgl = "org.lwjgl:lwjgl:$versions.lwjgl:natives-macos-arm64"
+lwjgl.lwjgl_natives = "org.lwjgl:lwjgl:$versions.lwjgl:natives-macos-arm64"
 deps.lwjgl = lwjgl
 
 ext.deps = deps
