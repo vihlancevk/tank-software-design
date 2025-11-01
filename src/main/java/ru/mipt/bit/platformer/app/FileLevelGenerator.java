@@ -44,6 +44,11 @@ public class FileLevelGenerator implements LevelGenerator {
     }
 
     @Override
+    public List<PlayerController> generateBotControllers(String texturePath, float speed) {
+        return List.of();
+    }
+
+    @Override
     public PlayerController generatePlayerController(String texturePath, float speed) {
         List<String> lines = getCachedLevelLines();
 

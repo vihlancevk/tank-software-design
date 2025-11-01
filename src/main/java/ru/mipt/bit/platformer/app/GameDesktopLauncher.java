@@ -8,16 +8,13 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
-import ru.mipt.bit.platformer.command.MoveCommand;
 import ru.mipt.bit.platformer.controller.EntityController;
 import ru.mipt.bit.platformer.controller.LevelController;
 import ru.mipt.bit.platformer.controller.ObstacleController;
 import ru.mipt.bit.platformer.controller.PlayerController;
-import ru.mipt.bit.platformer.model.Direction;
 
 import java.util.List;
 
-import static com.badlogic.gdx.Input.Keys.*;
 import static com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT;
 import static ru.mipt.bit.platformer.util.GdxGameUtils.createSingleLayerMapRenderer;
 
@@ -32,12 +29,12 @@ public class GameDesktopLauncher implements ApplicationListener {
     private Batch batch;
 
     private List<ObstacleController> obstacleControllers;
-    private LevelController levelController;
+    private List<PlayerController> botControllers;
     private PlayerController playerController;
+    private LevelController levelController;
 
     public GameDesktopLauncher(InputHandler inputHandler) {
         this.inputHandler = inputHandler;
-        setupInputHandler();
     }
 
     @Override
@@ -45,18 +42,22 @@ public class GameDesktopLauncher implements ApplicationListener {
         batch = new SpriteBatch();
 
         TiledMap tiledMap = new TmxMapLoader().load("level.tmx");
-//        LevelGenerator levelGenerator = new RandomLevelGenerator(
-//                WIDTH_IN_TILES, HEIGHT_IN_TILES, new TiledEntityControllerFactory(tiledMap)
-//        );
-        LevelGenerator levelGenerator = new FileLevelGenerator(
-                "level.txt", new TiledEntityControllerFactory(tiledMap)
+        LevelGenerator levelGenerator = new RandomLevelGenerator(
+                WIDTH_IN_TILES, HEIGHT_IN_TILES, new TiledEntityControllerFactory(tiledMap)
         );
 
         obstacleControllers = levelGenerator.generateObstacleControllers("images/green_tree.png");
-        levelController = LevelController.getInstance(
-                obstacleControllers, tiledMap, createSingleLayerMapRenderer(tiledMap, batch)
-        );
+        botControllers = levelGenerator.generateBotControllers("images/tank_blue.png", MOVEMENT_SPEED);
         playerController = levelGenerator.generatePlayerController("images/tank_blue.png", MOVEMENT_SPEED);
+        levelController = LevelController.create(
+                WIDTH_IN_TILES,
+                HEIGHT_IN_TILES,
+                obstacleControllers,
+                botControllers,
+                playerController,
+                tiledMap,
+                createSingleLayerMapRenderer(tiledMap, batch)
+        );
     }
 
     @Override
@@ -64,12 +65,19 @@ public class GameDesktopLauncher implements ApplicationListener {
         clearScreen();
         float delta = getTimePassedSinceLastRender();
 
-        inputHandler.handleInput(levelController, playerController);
+        botControllers.forEach(
+            botController -> {
+                inputHandler.handleBotInput(levelController, botController);
+                botController.update(delta);
+            }
+        );
+        inputHandler.handlePlayerInput(levelController, playerController);
         playerController.update(delta);
 
         levelController.render();
         batch.begin();
         obstacleControllers.forEach(obstacleController -> obstacleController.render(batch));
+        botControllers.forEach(botController -> botController.render(batch));
         playerController.render(batch);
         batch.end();
     }
@@ -97,19 +105,9 @@ public class GameDesktopLauncher implements ApplicationListener {
     public void dispose() {
         batch.dispose();
         obstacleControllers.forEach(EntityController::dispose);
-        levelController.dispose();
+        botControllers.forEach(EntityController::dispose);
         playerController.dispose();
-    }
-
-    private void setupInputHandler() {
-        inputHandler.setCommand(W, new MoveCommand(Direction.UP));
-        inputHandler.setCommand(UP, new MoveCommand(Direction.UP));
-        inputHandler.setCommand(S, new MoveCommand(Direction.DOWN));
-        inputHandler.setCommand(DOWN, new MoveCommand(Direction.DOWN));
-        inputHandler.setCommand(A, new MoveCommand(Direction.LEFT));
-        inputHandler.setCommand(LEFT, new MoveCommand(Direction.LEFT));
-        inputHandler.setCommand(D, new MoveCommand(Direction.RIGHT));
-        inputHandler.setCommand(RIGHT, new MoveCommand(Direction.RIGHT));
+        levelController.dispose();
     }
 
     private void clearScreen() {

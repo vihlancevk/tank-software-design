@@ -18,24 +18,28 @@ public class LevelController implements GameWorld {
         this.levelView = levelView;
     }
 
-    public static LevelController getInstance(
-            List<ObstacleController> obstacleControllers,
+    public static LevelController create(
+            int width,
+            int height,
+            List<ObstacleController> obstacles,
+            List<PlayerController> bots,
+            PlayerController player,
             TiledMap map,
             MapRenderer renderer
     ) {
-        LevelModel levelModel = new LevelModel();
-        obstacleControllers.forEach(obstacleController ->
-            levelModel.addObstacleModel(obstacleController.getEntityModel())
-        );
+        LevelModel model = new LevelModel(width, height);
 
-        LevelView levelView = new LevelView(map, renderer);
+        obstacles.forEach(o -> model.addEntityModel(o.getEntityModel()));
+        bots.forEach(b -> model.addEntityModel(b.getEntityModel()));
+        model.addEntityModel(player.getEntityModel());
 
-        return new LevelController(levelModel, levelView);
+        LevelView view = new LevelView(map, renderer);
+        return new LevelController(model, view);
     }
 
     @Override
-    public boolean isFree(int x, int y) {
-        return levelModel.isFree(new GridPoint2(x, y));
+    public boolean isAvailable(int x, int y) {
+        return levelModel.isAvailable(new GridPoint2(x, y));
     }
 
     public void render() {

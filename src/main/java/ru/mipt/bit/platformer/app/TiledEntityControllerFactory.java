@@ -55,8 +55,8 @@ public class TiledEntityControllerFactory implements EntityControllerFactory {
                 new PlayerModel(
                         entityControllerData.bounds,
                         entityControllerData.position,
-                        new TileMovement(getSingleLayer(map), Interpolation.smooth),
-                        entityControllerData.speed
+                        entityControllerData.speed,
+                        new TileMovement(getSingleLayer(map), Interpolation.smooth)
                 ),
                 new PlayerView(entityControllerData.texture, entityControllerData.graphics)
         ));

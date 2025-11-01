@@ -9,9 +9,7 @@ import ru.mipt.bit.platformer.util.TileMovement;
 import static ru.mipt.bit.platformer.util.GdxGameUtils.continueProgress;
 
 public class PlayerModel extends EntityModel {
-    private final GridPoint2 destination;
     private final TileMovement movement;
-    private final float speed;
 
     private float rotation;
     private float progress;
@@ -19,19 +17,13 @@ public class PlayerModel extends EntityModel {
     public PlayerModel(
             Rectangle bounds,
             GridPoint2 position,
-            TileMovement movement,
-            float speed
+            float speed,
+            TileMovement movement
     ) {
-        super(bounds, position);
-        this.destination = new GridPoint2(position);
+        super(bounds, position, position, speed);
         this.movement = movement;
-        this.speed = speed;
-        this.rotation = 0f;
-        this.progress = 1f;
-    }
-
-    public GridPoint2 getDestination() {
-        return destination;
+        this.rotation = 0.0f;
+        this.progress = 1.0f;
     }
 
     public float getRotation() {
@@ -50,9 +42,9 @@ public class PlayerModel extends EntityModel {
         GridPoint2 newDest = new GridPoint2(
                 position.x + direction.dx, position.y + direction.dy
         );
-        if (gameWorld.isFree(newDest.x, newDest.y)) {
+        if (gameWorld.isAvailable(newDest.x, newDest.y)) {
             destination.set(newDest);
-            progress = 0f;
+            progress = 0.0f;
         }
         rotation = direction.rotation;
     }
@@ -62,7 +54,7 @@ public class PlayerModel extends EntityModel {
 
         progress = continueProgress(progress, delta, speed);
 
-        if (MathUtils.isEqual(progress, 1f)) {
+        if (MathUtils.isEqual(progress, 1.0f)) {
             position.set(destination);
         }
     }

@@ -8,5 +8,7 @@ import java.util.List;
 public interface LevelGenerator {
     List<ObstacleController> generateObstacleControllers(String texturePath);
 
+    List<PlayerController> generateBotControllers(String texturePath, float speed);
+
     PlayerController generatePlayerController(String texturePath, float speed);
 }

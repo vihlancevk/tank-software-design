@@ -7,8 +7,7 @@ import org.junit.jupiter.api.Test;
 import ru.mipt.bit.platformer.api.GameWorld;
 import ru.mipt.bit.platformer.util.TileMovement;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class PlayerModelTest {
@@ -26,16 +25,16 @@ class PlayerModelTest {
         startPosition = new GridPoint2(0, 0);
         bounds = new Rectangle(0, 0, 1, 1);
         movement = mock(TileMovement.class);
-        playerModel = new PlayerModel(bounds, startPosition, movement, 1f);
+        playerModel = new PlayerModel(bounds, startPosition, 1.0f, movement);
     }
 
     @Test
     void testInitialState() {
-        // Assert
+        // Arrange
 
         // Act
 
-        // Arrange
+        // Assert
         assertEquals(0f, playerModel.getRotation(), 0.0001);
         assertEquals(1f, playerModel.getProgress(), 0.0001);
         assertEquals(startPosition, playerModel.getDestination());
@@ -44,7 +43,7 @@ class PlayerModelTest {
     @Test
     void testMove_WhenCellIsFree_UpdatesDestinationAndProgress() {
         // Arrange
-        when(gameWorld.isFree(0, 1)).thenReturn(true);
+        when(gameWorld.isAvailable(0, 1)).thenReturn(true);
 
         // Act
         playerModel.move(gameWorld, Direction.UP);
@@ -59,7 +58,7 @@ class PlayerModelTest {
     @Test
     void testMove_WhenCellIsBlocked_DoesNotChangeDestination() {
         // Arrange
-        when(gameWorld.isFree(0, 1)).thenReturn(false);
+        when(gameWorld.isAvailable(0, 1)).thenReturn(false);
 
         // Act
         playerModel.move(gameWorld, Direction.UP);
@@ -73,7 +72,7 @@ class PlayerModelTest {
     @Test
     void testUpdate_CallsMovementAndIncreasesProgress() {
         // Arrange
-        when(gameWorld.isFree(anyInt(), anyInt())).thenReturn(true);
+        when(gameWorld.isAvailable(anyInt(), anyInt())).thenReturn(true);
         playerModel.move(gameWorld, Direction.RIGHT);
 
         // Act
@@ -89,7 +88,7 @@ class PlayerModelTest {
     @Test
     void testUpdate_WhenProgressReachesOne_PositionUpdated() {
         // Arrange
-        when(gameWorld.isFree(anyInt(), anyInt())).thenReturn(true);
+        when(gameWorld.isAvailable(anyInt(), anyInt())).thenReturn(true);
         playerModel.move(gameWorld, Direction.UP);
 
         // Act
@@ -97,5 +96,44 @@ class PlayerModelTest {
 
         // Assert
         assertEquals(playerModel.getDestination(), playerModel.getPosition());
+    }
+
+    @Test
+    void testMove_DoesNothing_WhenProgressNotComplete() {
+        // Arrange
+        when(gameWorld.isAvailable(anyInt(), anyInt())).thenReturn(true);
+        playerModel.move(gameWorld, Direction.RIGHT);
+
+        // Act
+        playerModel.move(gameWorld, Direction.UP);
+
+        // Assert
+        assertEquals(new GridPoint2(1, 0), playerModel.getDestination());
+        assertEquals(0f, playerModel.getProgress(), 0.0001);
+    }
+
+    @Test
+    void testMove_UpdatesRotationEvenWhenBlocked() {
+        // Arrange
+        when(gameWorld.isAvailable(1, 0)).thenReturn(false);
+
+        // Act
+        playerModel.move(gameWorld, Direction.RIGHT);
+
+        // Assert
+        assertEquals(Direction.RIGHT.rotation, playerModel.getRotation(), 0.0001);
+    }
+
+    @Test
+    void testUpdate_WhenProgressLessThanOne_DoesNotChangePosition() {
+        // Arrange
+        when(gameWorld.isAvailable(anyInt(), anyInt())).thenReturn(true);
+        playerModel.move(gameWorld, Direction.UP);
+
+        // Act
+        playerModel.update(0.1f);
+
+        // Assert
+        assertNotEquals(playerModel.getDestination(), playerModel.getPosition());
     }
 }
