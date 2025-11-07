@@ -10,9 +10,19 @@ gdx.backend_lwjgl3 = "com.badlogicgames.gdx:gdx-backend-lwjgl3:$versions.gdx"
 gdx.platform = "com.badlogicgames.gdx:gdx-platform:$versions.gdx:natives-desktop"
 deps.gdx = gdx
 
-// lwjgl natives for macOS arm64
+// lwjgl natives
 def lwjgl = [:]
-lwjgl.lwjgl_natives = "org.lwjgl:lwjgl:$versions.lwjgl:natives-macos-arm64"
+// unix
+lwjgl.lwjgl_natives_linux = "org.lwjgl:lwjgl:$versions.lwjgl:natives-linux"
+lwjgl.lwjgl_opengl_natives_linux = "org.lwjgl:lwjgl-opengl:$versions.lwjgl:natives-linux"
+lwjgl.lwjgl_glfw_natives_linux = "org.lwjgl:lwjgl-glfw:$versions.lwjgl:natives-linux"
+lwjgl.lwjgl_openal_natives_linux = "org.lwjgl:lwjgl-openal:$versions.lwjgl:natives-linux"
+// mac
+lwjgl.lwjgl_natives_macos_arm64 = "org.lwjgl:lwjgl:$versions.lwjgl:natives-macos-arm64"
+lwjgl.lwjgl_opengl_natives_macos_arm64 = "org.lwjgl:lwjgl-opengl:$versions.lwjgl:natives-macos-arm64"
+lwjgl.lwjgl_glfw_natives_macos_arm64 = "org.lwjgl:lwjgl-glfw:$versions.lwjgl:natives-macos-arm64"
+lwjgl.lwjgl_openal_natives_macos_arm64 = "org.lwjgl:lwjgl-openal:$versions.lwjgl:natives-macos-arm64"
+
 deps.lwjgl = lwjgl
 
 ext.deps = deps
