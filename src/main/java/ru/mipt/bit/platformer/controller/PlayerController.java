@@ -1,14 +1,14 @@
 package ru.mipt.bit.platformer.controller;
 
-import ru.mipt.bit.platformer.model.Direction;
 import ru.mipt.bit.platformer.api.GameWorld;
 import ru.mipt.bit.platformer.api.Movable;
+import ru.mipt.bit.platformer.model.Direction;
 import ru.mipt.bit.platformer.model.PlayerModel;
-import ru.mipt.bit.platformer.view.PlayerView;
+import ru.mipt.bit.platformer.view.Viewable;
 
-public class PlayerController extends EntityController<PlayerModel, PlayerView> implements Movable {
-    public PlayerController(PlayerModel entityModel, PlayerView entityView) {
-        super(entityModel, entityView);
+public class PlayerController extends EntityController<PlayerModel, Viewable<PlayerModel>> implements Movable {
+    public PlayerController(PlayerModel entityModel, Viewable<PlayerModel> viewable) {
+        super(entityModel, viewable);
     }
 
     @Override

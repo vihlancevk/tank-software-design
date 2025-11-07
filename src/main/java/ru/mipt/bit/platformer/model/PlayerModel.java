@@ -6,6 +6,8 @@ import com.badlogic.gdx.math.Rectangle;
 import ru.mipt.bit.platformer.api.GameWorld;
 import ru.mipt.bit.platformer.util.TileMovement;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 import static ru.mipt.bit.platformer.util.GdxGameUtils.continueProgress;
 
 public class PlayerModel extends EntityModel {
@@ -13,6 +15,7 @@ public class PlayerModel extends EntityModel {
 
     private float rotation;
     private float progress;
+    private int health;
 
     public PlayerModel(
             Rectangle bounds,
@@ -24,6 +27,7 @@ public class PlayerModel extends EntityModel {
         this.movement = movement;
         this.rotation = 0.0f;
         this.progress = 1.0f;
+        this.health = ThreadLocalRandom.current().nextInt(80, 100 + 1);
     }
 
     public float getRotation() {
@@ -32,6 +36,10 @@ public class PlayerModel extends EntityModel {
 
     public float getProgress() {
         return progress;
+    }
+
+    public int getHealth() {
+        return health;
     }
 
     public void move(GameWorld gameWorld, Direction direction) {
