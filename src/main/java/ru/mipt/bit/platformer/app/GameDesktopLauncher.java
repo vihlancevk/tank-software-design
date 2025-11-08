@@ -65,13 +65,8 @@ public class GameDesktopLauncher implements ApplicationListener {
         clearScreen();
         float delta = getTimePassedSinceLastRender();
 
-        botControllers.forEach(
-            botController -> {
-                inputHandler.handleBotInput(levelController, botController);
-                botController.update(delta);
-            }
-        );
-        inputHandler.handlePlayerInput(levelController, playerController);
+        inputHandler.handleInput(levelController, botControllers, playerController);
+        botControllers.forEach(botController -> botController.update(delta));
         playerController.update(delta);
 
         levelController.render();

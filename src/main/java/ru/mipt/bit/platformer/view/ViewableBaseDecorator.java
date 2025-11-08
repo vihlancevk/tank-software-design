@@ -4,10 +4,20 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import ru.mipt.bit.platformer.model.EntityModel;
 
 public class ViewableBaseDecorator<T extends EntityModel> implements Viewable<T> {
-    private final Viewable<T> viewable;
+    protected final Viewable<T> viewable;
 
     public ViewableBaseDecorator(Viewable<T> viewable) {
         this.viewable = viewable;
+    }
+
+    @Override
+    public boolean isHealthVisible() {
+        return viewable.isHealthVisible();
+    }
+
+    @Override
+    public void setHealthVisible(boolean healthVisible) {
+        viewable.setHealthVisible(healthVisible);
     }
 
     @Override

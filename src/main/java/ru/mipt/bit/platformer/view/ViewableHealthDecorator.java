@@ -8,6 +8,8 @@ import ru.mipt.bit.platformer.model.PlayerModel;
 import ru.mipt.bit.platformer.util.TextureFactory;
 
 public class ViewableHealthDecorator extends ViewableBaseDecorator<PlayerModel> {
+    private static final float PERCENTAGE_OF_HEIGHT = 0.05f;
+
     private final Texture whitePixel;
 
     public ViewableHealthDecorator(Viewable<PlayerModel> viewable) {
@@ -18,7 +20,9 @@ public class ViewableHealthDecorator extends ViewableBaseDecorator<PlayerModel> 
     @Override
     public void render(Batch batch, PlayerModel playerModel) {
         super.render(batch, playerModel);
-        renderHealthBar(batch, playerModel);
+        if (viewable.isHealthVisible()) {
+            renderHealthBar(batch, playerModel);
+        }
     }
 
     @Override
@@ -28,11 +32,11 @@ public class ViewableHealthDecorator extends ViewableBaseDecorator<PlayerModel> 
     }
 
     private void renderHealthBar(Batch batch, PlayerModel playerModel) {
-        float ratio = playerModel.getHealth() / 100.0f;
+        float ratio = 1.0f * playerModel.getCurHealth() / playerModel.getMaxHealth();
 
         Rectangle bounds = playerModel.getBounds();
         float barWidth = bounds.width;
-        float barHeight = 0.05f * bounds.height;
+        float barHeight = PERCENTAGE_OF_HEIGHT * bounds.height;
         float x = bounds.x;
         float y = bounds.y + bounds.height + barHeight;
 
