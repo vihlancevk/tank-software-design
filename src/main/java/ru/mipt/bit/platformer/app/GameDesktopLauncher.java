@@ -14,6 +14,7 @@ import ru.mipt.bit.platformer.controller.ObstacleController;
 import ru.mipt.bit.platformer.controller.PlayerController;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT;
 import static ru.mipt.bit.platformer.util.GdxGameUtils.createSingleLayerMapRenderer;
@@ -29,7 +30,7 @@ public class GameDesktopLauncher implements ApplicationListener {
     private Batch batch;
 
     private List<ObstacleController> obstacleControllers;
-    private List<PlayerController> botControllers;
+    private List<Bot> bots;
     private PlayerController playerController;
     private LevelController levelController;
 
@@ -47,7 +48,8 @@ public class GameDesktopLauncher implements ApplicationListener {
         );
 
         obstacleControllers = levelGenerator.generateObstacleControllers("images/green_tree.png");
-        botControllers = levelGenerator.generateBotControllers("images/tank_blue.png", MOVEMENT_SPEED);
+        List<PlayerController> botControllers = levelGenerator.generateBotControllers("images/tank_blue.png", MOVEMENT_SPEED);
+        bots = botControllers.stream().map(Bot::new).collect(Collectors.toList());
         playerController = levelGenerator.generatePlayerController("images/tank_blue.png", MOVEMENT_SPEED);
         levelController = LevelController.create(
                 WIDTH_IN_TILES,
@@ -65,14 +67,14 @@ public class GameDesktopLauncher implements ApplicationListener {
         clearScreen();
         float delta = getTimePassedSinceLastRender();
 
-        inputHandler.handleInput(levelController, botControllers, playerController);
-        botControllers.forEach(botController -> botController.update(delta));
+        inputHandler.handleInput(levelController, bots, playerController, delta);
+        bots.forEach(bot -> bot.update(delta));
         playerController.update(delta);
 
         levelController.render();
         batch.begin();
         obstacleControllers.forEach(obstacleController -> obstacleController.render(batch));
-        botControllers.forEach(botController -> botController.render(batch));
+        bots.forEach(bot -> bot.render(batch));
         playerController.render(batch);
         batch.end();
     }
@@ -100,7 +102,7 @@ public class GameDesktopLauncher implements ApplicationListener {
     public void dispose() {
         batch.dispose();
         obstacleControllers.forEach(EntityController::dispose);
-        botControllers.forEach(EntityController::dispose);
+        bots.forEach(Bot::dispose);
         playerController.dispose();
         levelController.dispose();
     }

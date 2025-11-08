@@ -12,6 +12,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import static com.badlogic.gdx.Input.Keys.*;
 
 public class InputHandler {
+    private static final float BOT_MOVE_COOLDOWN = 0.125f;
     private static final List<CommandFactory> BOT_ACTIONS = List.of(
             MoveUpCommand::new,
             MoveDownCommand::new,
@@ -21,30 +22,37 @@ public class InputHandler {
 
     public void handleInput(
             GameWorld gameWorld,
-            List<PlayerController> botControllers,
-            PlayerController playerController) {
-        handleLevelInput(gameWorld, botControllers, playerController);
-        botControllers.forEach(botController -> handleBotInput(gameWorld, botController));
-        handlePlayerInput(gameWorld, playerController);
+            List<Bot> bots,
+            PlayerController playerController,
+            float delta) {
+        handleLevelInput(gameWorld, bots, playerController);
+        bots.forEach(bot -> handleBotInput(gameWorld, bot, delta));
+        handlePlayerInput(gameWorld, playerController, delta);
     }
 
     private void handleLevelInput(
             GameWorld gameWorld,
-            List<PlayerController> bots,
+            List<Bot> bots,
             PlayerController player
     ) {
         if (isJustPressed(L)) {
-            bots.forEach(bot -> new ToggleHealthBarCommand(bot).execute(gameWorld));
+            bots.forEach(bot -> new ToggleHealthBarCommand(bot.getController()).execute(gameWorld));
             new ToggleHealthBarCommand(player).execute(gameWorld);
         }
     }
 
-    private void handleBotInput(GameWorld gameWorld, PlayerController bot) {
-        CommandFactory factory = BOT_ACTIONS.get(ThreadLocalRandom.current().nextInt(BOT_ACTIONS.size()));
-        factory.create(bot).execute(gameWorld);
+    private void handleBotInput(GameWorld gameWorld, Bot bot, float delta) {
+        bot.decreaseCooldown(delta);
+
+        if (bot.getCooldown() <= 0.0f) {
+            CommandFactory factory = BOT_ACTIONS.get(ThreadLocalRandom.current().nextInt(BOT_ACTIONS.size()));
+            factory.create(bot.getController()).execute(gameWorld);
+
+            bot.setCooldown(BOT_MOVE_COOLDOWN);
+        }
     }
 
-    private void handlePlayerInput(GameWorld gameWorld, PlayerController player) {
+    private void handlePlayerInput(GameWorld gameWorld, PlayerController player, float delta) {
         Command command = null;
 
         if (isJustPressed(W, UP)) {
