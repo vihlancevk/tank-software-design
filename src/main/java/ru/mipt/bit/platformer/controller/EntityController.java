@@ -2,15 +2,15 @@ package ru.mipt.bit.platformer.controller;
 
 import com.badlogic.gdx.graphics.g2d.Batch;
 import ru.mipt.bit.platformer.model.EntityModel;
-import ru.mipt.bit.platformer.view.EntityView;
+import ru.mipt.bit.platformer.view.Viewable;
 
-public class EntityController<T extends EntityModel, V extends EntityView<T>> {
+public class EntityController<T extends EntityModel, V extends Viewable<T>> {
     protected final T entityModel;
-    protected final V entityView;
+    protected final V viewable;
 
-    public EntityController(T entityModel, V entityView) {
+    public EntityController(T entityModel, V viewable) {
         this.entityModel = entityModel;
-        this.entityView = entityView;
+        this.viewable = viewable;
     }
 
     public T getEntityModel() {
@@ -21,10 +21,10 @@ public class EntityController<T extends EntityModel, V extends EntityView<T>> {
     }
 
     public void render(Batch batch) {
-        entityView.render(batch, entityModel);
+        viewable.render(batch, entityModel);
     }
 
     public void dispose() {
-        entityView.dispose();
+        viewable.dispose();
     }
 }

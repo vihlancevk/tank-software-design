@@ -9,8 +9,7 @@ import ru.mipt.bit.platformer.controller.PlayerController;
 import ru.mipt.bit.platformer.model.ObstacleModel;
 import ru.mipt.bit.platformer.model.PlayerModel;
 import ru.mipt.bit.platformer.util.TileMovement;
-import ru.mipt.bit.platformer.view.ObstacleView;
-import ru.mipt.bit.platformer.view.PlayerView;
+import ru.mipt.bit.platformer.view.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -51,19 +50,34 @@ public class TiledEntityControllerFactory implements EntityControllerFactory {
     }
 
     private void registerDefaultCreators() {
-        creators.put("player", (entityControllerData) -> new PlayerController(
-                new PlayerModel(
-                        entityControllerData.bounds,
-                        entityControllerData.position,
-                        entityControllerData.speed,
-                        new TileMovement(getSingleLayer(map), Interpolation.smooth)
-                ),
-                new PlayerView(entityControllerData.texture, entityControllerData.graphics)
-        ));
+        creators.put(
+                "player",
+                (entityControllerData) -> {
+                    PlayerModel playerModel = new PlayerModel(
+                            entityControllerData.bounds,
+                            entityControllerData.position,
+                            entityControllerData.speed,
+                            new TileMovement(getSingleLayer(map), Interpolation.smooth)
+                    );
+                    Viewable<PlayerModel> viewable =
+                            new PlayerView(entityControllerData.texture, entityControllerData.graphics);
+                    Viewable<PlayerModel> viewableHealthDecorator =
+                            new ViewableHealthDecorator(viewable);
+                    return new PlayerController(playerModel, viewableHealthDecorator);
+                }
+        );
 
-        creators.put("obstacle", (entityControllerData) -> new ObstacleController(
-                new ObstacleModel(entityControllerData.bounds, entityControllerData.position),
-                new ObstacleView(entityControllerData.texture, entityControllerData.graphics)
-        ));
+        creators.put(
+                "obstacle",
+                (entityControllerData) -> {
+                    ObstacleModel obstacleModel =
+                            new ObstacleModel(entityControllerData.bounds, entityControllerData.position);
+                    Viewable<ObstacleModel> viewable =
+                            new ObstacleView(entityControllerData.texture, entityControllerData.graphics);
+                    Viewable<ObstacleModel> viewableBaseDecorator =
+                            new ViewableBaseDecorator<>(viewable);
+                    return new ObstacleController(obstacleModel, viewableBaseDecorator);
+                }
+        );
     }
 }
