@@ -8,6 +8,7 @@ import ru.mipt.bit.platformer.controller.ObstacleController;
 import ru.mipt.bit.platformer.controller.PlayerController;
 import ru.mipt.bit.platformer.model.ObstacleModel;
 import ru.mipt.bit.platformer.model.PlayerModel;
+import ru.mipt.bit.platformer.util.GdxGameUtils;
 import ru.mipt.bit.platformer.util.TileMovement;
 import ru.mipt.bit.platformer.view.*;
 
@@ -15,14 +16,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-import static ru.mipt.bit.platformer.util.GdxGameUtils.getSingleLayer;
-
 public class TiledEntityControllerFactory implements EntityControllerFactory {
-    private final TiledMap map;
+    private final TiledMap tiledMap;
     private final Map<String, Function<EntityParams, EntityController<?, ?>>> creators = new HashMap<>();
 
-    public TiledEntityControllerFactory(TiledMap map) {
-        this.map = map;
+    public TiledEntityControllerFactory(TiledMap tiledMap) {
+        this.tiledMap = tiledMap;
         registerDefaultCreators();
     }
 
@@ -44,38 +43,32 @@ public class TiledEntityControllerFactory implements EntityControllerFactory {
             throw new IllegalArgumentException("Unknown entity type: " + type);
         }
 
-        return (T) creator.apply(
-                EntityParams.getInstance(map, texturePath, x, y, speed)
-        );
+        return (T) creator.apply(new EntityParams(texturePath, x, y, speed));
     }
 
     private void registerDefaultCreators() {
         creators.put(
                 "player",
-                (entityControllerData) -> {
-                    PlayerModel playerModel = new PlayerModel(
-                            entityControllerData.bounds,
-                            entityControllerData.position,
-                            entityControllerData.speed,
-                            new TileMovement(getSingleLayer(map), Interpolation.smooth)
-                    );
+                (entityParams) -> {
+                    PlayerModel playerModel = new PlayerModel(entityParams.position, entityParams.speed);
                     Viewable<PlayerModel> viewable =
-                            new PlayerView(entityControllerData.texture, entityControllerData.graphics);
-                    Viewable<PlayerModel> viewableHealthDecorator =
-                            new ViewableHealthDecorator(viewable);
-                    return new PlayerController(playerModel, viewableHealthDecorator);
+                            new PlayerView(entityParams.texture, entityParams.graphics, entityParams.bounds);
+                    Viewable<PlayerModel> viewableHealthDecorator = new ViewableHealthDecorator(viewable);
+                    return new PlayerController(
+                            playerModel,
+                            viewableHealthDecorator,
+                            new TileMovement(GdxGameUtils.getSingleLayer(tiledMap), Interpolation.smooth)
+                    );
                 }
         );
 
         creators.put(
                 "obstacle",
-                (entityControllerData) -> {
-                    ObstacleModel obstacleModel =
-                            new ObstacleModel(entityControllerData.bounds, entityControllerData.position);
+                (entityParams) -> {
+                    ObstacleModel obstacleModel = new ObstacleModel(entityParams.position);
                     Viewable<ObstacleModel> viewable =
-                            new ObstacleView(entityControllerData.texture, entityControllerData.graphics);
-                    Viewable<ObstacleModel> viewableBaseDecorator =
-                            new ViewableBaseDecorator<>(viewable);
+                            new ObstacleView(entityParams.texture, entityParams.graphics, entityParams.bounds);
+                    Viewable<ObstacleModel> viewableBaseDecorator = new ViewableBaseDecorator<>(viewable);
                     return new ObstacleController(obstacleModel, viewableBaseDecorator);
                 }
         );

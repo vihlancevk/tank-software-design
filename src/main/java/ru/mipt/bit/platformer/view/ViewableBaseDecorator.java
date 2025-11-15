@@ -1,6 +1,7 @@
 package ru.mipt.bit.platformer.view;
 
 import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.math.Rectangle;
 import ru.mipt.bit.platformer.model.EntityModel;
 
 public class ViewableBaseDecorator<T extends EntityModel> implements Viewable<T> {
@@ -18,6 +19,11 @@ public class ViewableBaseDecorator<T extends EntityModel> implements Viewable<T>
     @Override
     public void setHealthVisible(boolean healthVisible) {
         viewable.setHealthVisible(healthVisible);
+    }
+
+    @Override
+    public Rectangle getBounds() {
+        return viewable.getBounds();
     }
 
     @Override

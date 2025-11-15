@@ -8,7 +8,6 @@ import com.badlogic.gdx.math.Rectangle;
 import static ru.mipt.bit.platformer.util.GdxGameUtils.moveRectangleAtTileCenter;
 
 public class TileMovement {
-
     private final TiledMapTileLayer tileLayer;
     private final Interpolation interpolation;
 
@@ -17,7 +16,12 @@ public class TileMovement {
         this.interpolation = interpolation;
     }
 
-    public Rectangle moveRectangleBetweenTileCenters(Rectangle rectangle, GridPoint2 fromTileCoordinates, GridPoint2 toTileCoordinates, float progress) {
+    public Rectangle moveRectangleBetweenTileCenters(
+            Rectangle rectangle,
+            GridPoint2 fromTileCoordinates,
+            GridPoint2 toTileCoordinates,
+            float progress
+    ) {
         moveRectangleAtTileCenter(tileLayer, rectangle, fromTileCoordinates);
         float fromTileBottomLeftX = rectangle.x;
         float fromTileBottomLeftY = rectangle.y;
