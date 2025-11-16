@@ -1,5 +1,9 @@
 package ru.mipt.bit.platformer.api;
 
+import ru.mipt.bit.platformer.controller.BulletController;
+
 public interface GameWorld {
-    boolean isAvailable(int x, int y);
+    boolean isAvailableForMove(int x, int y);
+
+    void addBulletController(BulletController bulletController);
 }

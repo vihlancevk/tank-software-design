@@ -1,72 +1,80 @@
 package ru.mipt.bit.platformer.app;
 
 import com.badlogic.gdx.Gdx;
-import ru.mipt.bit.platformer.api.GameWorld;
 import ru.mipt.bit.platformer.api.Movable;
+import ru.mipt.bit.platformer.api.Shootable;
 import ru.mipt.bit.platformer.command.*;
 import ru.mipt.bit.platformer.controller.PlayerController;
 
+import java.util.ArrayDeque;
 import java.util.List;
+import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static com.badlogic.gdx.Input.Keys.*;
 
 public class InputHandler {
-    private static final float BOT_MOVE_COOLDOWN = 0.125f;
-    private static final List<CommandFactory> BOT_ACTIONS = List.of(
+    private static final List<MoveCommandFactory> BOT_MOVE_ACTIONS = List.of(
             MoveUpCommand::new,
             MoveDownCommand::new,
             MoveLeftCommand::new,
             MoveRightCommand::new
     );
+    private static final ShootCommandFactory BOT_SHOOT_ACTION = ShootCommand::new;
 
-    public void handleInput(
-            GameWorld gameWorld,
-            List<Bot> bots,
-            PlayerController playerController,
-            float delta) {
-        handleLevelInput(gameWorld, bots, playerController);
-        bots.forEach(bot -> handleBotInput(gameWorld, bot, delta));
-        handlePlayerInput(gameWorld, playerController, delta);
+    public Queue<Command> handleInput(PlayerController playerController, Set<PlayerController> botControllers) {
+        Queue<Command> commands = new ArrayDeque<>();
+        handleLevelInput(commands, playerController, botControllers);
+        handlePlayerInput(commands, playerController);
+        botControllers.forEach(botController -> handleBotInput(commands, botController));
+        return commands;
     }
 
     private void handleLevelInput(
-            GameWorld gameWorld,
-            List<Bot> bots,
-            PlayerController player
+            Queue<Command> commands,
+            PlayerController playerController,
+            Set<PlayerController> botControllers
     ) {
         if (isJustPressed(L)) {
-            bots.forEach(bot -> new ToggleHealthBarCommand(bot.getController()).execute(gameWorld));
-            new ToggleHealthBarCommand(player).execute(gameWorld);
+            if (playerController != null) {
+                commands.add(new ToggleHealthBarCommand(playerController));
+            }
+            botControllers.forEach(botController -> commands.add(new ToggleHealthBarCommand(botController)));
         }
     }
 
-    private void handleBotInput(GameWorld gameWorld, Bot bot, float delta) {
-        bot.decreaseCooldown(delta);
-
-        if (bot.getCooldown() <= 0.0f) {
-            CommandFactory factory = BOT_ACTIONS.get(ThreadLocalRandom.current().nextInt(BOT_ACTIONS.size()));
-            factory.create(bot.getController()).execute(gameWorld);
-
-            bot.setCooldown(BOT_MOVE_COOLDOWN);
+    private void handlePlayerInput(Queue<Command> commands, PlayerController playerController) {
+        if (playerController == null) {
+            return;
         }
-    }
-
-    private void handlePlayerInput(GameWorld gameWorld, PlayerController player, float delta) {
-        Command command = null;
 
         if (isJustPressed(W, UP)) {
-            command = new MoveUpCommand(player);
+            commands.add(new MoveUpCommand(playerController));
         } else if (isJustPressed(S, DOWN)) {
-            command = new MoveDownCommand(player);
+            commands.add(new MoveDownCommand(playerController));
         } else if (isJustPressed(A, LEFT)) {
-            command = new MoveLeftCommand(player);
+            commands.add(new MoveLeftCommand(playerController));
         } else if (isJustPressed(D, RIGHT)) {
-            command = new MoveRightCommand(player);
+            commands.add(new MoveRightCommand(playerController));
+        } else if (isJustPressed(SPACE)) {
+            commands.add(new ShootCommand(playerController));
+        }
+    }
+
+    private void handleBotInput(Queue<Command> commands, PlayerController botController) {
+        ThreadLocalRandom threadLocalRandom = ThreadLocalRandom.current();
+        double random = threadLocalRandom.nextDouble();
+
+        if (random < 0.5) {
+            return;
         }
 
-        if (command != null) {
-            command.execute(gameWorld);
+        if (random < 0.75) {
+            MoveCommandFactory factory = BOT_MOVE_ACTIONS.get(threadLocalRandom.nextInt(BOT_MOVE_ACTIONS.size()));
+            commands.add(factory.create(botController));
+        } else {
+            commands.add(BOT_SHOOT_ACTION.create(botController));
         }
     }
 
@@ -80,7 +88,12 @@ public class InputHandler {
     }
 
     @FunctionalInterface
-    private interface CommandFactory {
+    private interface MoveCommandFactory {
         Command create(Movable movable);
+    }
+
+    @FunctionalInterface
+    private interface ShootCommandFactory {
+        Command create(Shootable shootable);
     }
 }

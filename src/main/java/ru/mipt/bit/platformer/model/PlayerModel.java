@@ -2,78 +2,102 @@ package ru.mipt.bit.platformer.model;
 
 import com.badlogic.gdx.math.GridPoint2;
 import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Rectangle;
 import ru.mipt.bit.platformer.api.GameWorld;
-import ru.mipt.bit.platformer.util.TileMovement;
+import ru.mipt.bit.platformer.util.GdxGameUtils;
 
+import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
-
-import static ru.mipt.bit.platformer.util.GdxGameUtils.continueProgress;
 
 public class PlayerModel extends EntityModel {
     private static final int MAX_HEALTH = 100;
 
-    private final TileMovement movement;
+    private final GridPoint2 destination;
+    private final float tankSpeed;
+    private final float bulletSpeed;
 
-    private float rotation;
-    private float progress;
+    private int rotation;
     private int curHealth;
 
-    public PlayerModel(
-            Rectangle bounds,
-            GridPoint2 position,
-            float speed,
-            TileMovement movement
-    ) {
-        super(bounds, position, position, speed);
-        this.movement = movement;
-        this.rotation = 0.0f;
-        this.progress = 1.0f;
+    private float movementProgress;
+    private float shootingProgress;
+
+    public PlayerModel(GridPoint2 position, float tankSpeed) {
+        super(position);
+
+        this.destination = new GridPoint2(position);
+        this.tankSpeed = tankSpeed;
+        this.bulletSpeed = 1.5f * tankSpeed;
+
+        this.rotation = 0;
         this.curHealth = ThreadLocalRandom.current().nextInt(80, MAX_HEALTH + 1);
+
+        this.movementProgress = 1.0f;
+        this.shootingProgress = 1.0f;
     }
 
     public int getMaxHealth() {
         return MAX_HEALTH;
     }
 
-    public float getRotation() {
-        return rotation;
+    public GridPoint2 getDestination() {
+        return destination;
     }
 
-    public float getProgress() {
-        return progress;
+    public int getRotation() {
+        return rotation;
     }
 
     public int getCurHealth() {
         return curHealth;
     }
 
-    public void move(GameWorld gameWorld, Direction direction) {
-        if (!MathUtils.isEqual(progress, 1f)) {
-            return;
-        }
+    public void decreaseHealth(int damage) {
+        curHealth -= damage;
+    }
 
-        GridPoint2 newDest = new GridPoint2(
-                position.x + direction.dx, position.y + direction.dy
-        );
-        if (gameWorld.isAvailable(newDest.x, newDest.y)) {
-            destination.set(newDest);
-            progress = 0.0f;
-        }
-        rotation = direction.rotation;
+    public float getMovementProgress() {
+        return movementProgress;
     }
 
     public void update(float delta) {
-        movement.moveRectangleBetweenTileCenters(bounds, position, destination, progress);
+        movementProgress = GdxGameUtils.continueProgress(movementProgress, delta, tankSpeed);
+        shootingProgress = GdxGameUtils.continueProgress(shootingProgress, delta, bulletSpeed);
 
-        progress = continueProgress(progress, delta, speed);
-
-        if (MathUtils.isEqual(progress, 1.0f)) {
+        if (MathUtils.isEqual(movementProgress, 1.0f)) {
             position.set(destination);
         }
     }
 
-    public boolean isDisplayable() {
-        return true;
+    public void move(GameWorld gameWorld, Direction direction) {
+        if (!isReadyToAct()) {
+            return;
+        }
+
+        int nx = position.x + direction.dx;
+        int ny = position.y + direction.dy;
+        if (gameWorld.isAvailableForMove(nx, ny)) {
+            destination.set(nx, ny);
+            movementProgress = 0.0f;
+        }
+        rotation = direction.rotation;
     }
+
+    public Optional<BulletModel> shoot() {
+        if (!isReadyToAct()) {
+            return Optional.empty();
+        }
+
+        Direction direction = Direction.fromRotation(rotation);
+        int bulletDamage = ThreadLocalRandom.current().nextInt(1, 10);
+        BulletModel bulletModel = new BulletModel(position, direction, bulletSpeed, bulletDamage);
+        shootingProgress = 0.0f;
+
+        return Optional.of(bulletModel);
+    }
+
+    private boolean isReadyToAct() {
+        return MathUtils.isEqual(movementProgress, 1.0f)
+                && MathUtils.isEqual(shootingProgress, 1.0f);
+    }
+
 }

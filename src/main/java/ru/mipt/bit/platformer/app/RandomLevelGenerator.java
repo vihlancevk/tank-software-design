@@ -26,8 +26,8 @@ public class RandomLevelGenerator implements LevelGenerator {
         this.height = height;
         this.factory = factory;
 
-        this.obstacleCount = (int) (0.3 * width * height);
-        this.botCount = (int) (0.1 * width * height);
+        this.obstacleCount = (int) (0.15 * width * height);
+        this.botCount = (int) (0.05 * width * height);
     }
 
     @Override

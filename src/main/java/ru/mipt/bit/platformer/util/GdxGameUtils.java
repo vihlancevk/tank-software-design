@@ -52,7 +52,7 @@ public final class GdxGameUtils {
         return rectangle.setCenter(tileCenter);
     }
 
-    public static void drawTextureRegionUnscaled(Batch batch, TextureRegion region, Rectangle rectangle, float rotation) {
+    public static void drawTextureRegionUnscaled(Batch batch, TextureRegion region, Rectangle rectangle, int rotation) {
         int regionWidth = region.getRegionWidth();
         int regionHeight = region.getRegionHeight();
         float regionOriginX = regionWidth / 2f;
@@ -67,7 +67,7 @@ public final class GdxGameUtils {
     }
 
     public static float continueProgress(float previousProgress, float deltaTime, float speed) {
-        return clamp(previousProgress + deltaTime / speed, 0f, 1f);
+        return clamp(previousProgress + deltaTime * speed, 0f, 1f);
     }
 
     private static Vector2 calculateTileCenter(TiledMapTileLayer tileLayer, GridPoint2 tileCoordinates) {

@@ -34,7 +34,7 @@ public class ViewableHealthDecorator extends ViewableBaseDecorator<PlayerModel> 
     private void renderHealthBar(Batch batch, PlayerModel playerModel) {
         float ratio = 1.0f * playerModel.getCurHealth() / playerModel.getMaxHealth();
 
-        Rectangle bounds = playerModel.getBounds();
+        Rectangle bounds = super.getBounds();
         float barWidth = bounds.width;
         float barHeight = PERCENTAGE_OF_HEIGHT * bounds.height;
         float x = bounds.x;
