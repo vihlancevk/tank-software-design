@@ -8,7 +8,12 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.stereotype.Component;
 import ru.mipt.bit.platformer.controller.LevelController;
+import ru.mipt.bit.platformer.controller.LevelControllerFactory;
 import ru.mipt.bit.platformer.controller.ObstacleController;
 import ru.mipt.bit.platformer.controller.PlayerController;
 
@@ -16,40 +21,39 @@ import java.util.List;
 
 import static com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT;
 
+@Component
 public class GameDesktopLauncher implements ApplicationListener {
-    private static final int WIDTH_IN_TILES = 10;
-    private static final int HEIGHT_IN_TILES = 8;
-
-    private static final int N_PIXELS_IN_TILE = 128;
-
-    private static final float PLAYER_MOVEMENT_SPEED = 2.5f;
-    private static final float BOT_MOVEMENT_SPEED = 2.5f;
+    private final LevelControllerFactory levelControllerFactory;
+    private final LevelGenerator levelGenerator;
 
     private Batch batch;
     private LevelController levelController;
+
+    @Autowired
+    public GameDesktopLauncher(
+            LevelControllerFactory levelControllerFactory,
+            @Qualifier("randomLevelGenerator") LevelGenerator levelGenerator
+    ) {
+        this.levelControllerFactory = levelControllerFactory;
+        this.levelGenerator = levelGenerator;
+    }
 
     @Override
     public void create() {
         TiledMap tiledMap = new TmxMapLoader().load("level.tmx");
         batch = new SpriteBatch();
-        InputHandler inputHandler = new InputHandler();
 
-        levelController = LevelController.create(WIDTH_IN_TILES, HEIGHT_IN_TILES, tiledMap, batch, inputHandler);
+        levelController = levelControllerFactory.create(tiledMap, batch);
+        levelGenerator.setEntityControllerFactory(new TiledEntityControllerFactory(tiledMap));
 
-        LevelGenerator levelGenerator = new RandomLevelGenerator(
-                WIDTH_IN_TILES, HEIGHT_IN_TILES, new TiledEntityControllerFactory(tiledMap)
-        );
-
-        PlayerController playerController =
-                levelGenerator.generatePlayerController("images/tank_blue.png", PLAYER_MOVEMENT_SPEED);
+        PlayerController playerController = levelGenerator.generatePlayerController("images/tank_blue.png");
         levelController.setPlayerController(playerController);
 
         List<ObstacleController> obstacleControllers =
                 levelGenerator.generateObstacleControllers("images/green_tree.png");
         obstacleControllers.forEach(obstacleController -> levelController.addObstacleController(obstacleController));
 
-        List<PlayerController> botControllers =
-                levelGenerator.generateBotControllers("images/tank_blue.png", BOT_MOVEMENT_SPEED);
+        List<PlayerController> botControllers = levelGenerator.generateBotControllers("images/tank_blue.png");
         botControllers.forEach(botController -> levelController.addBotController(botController));
     }
 
@@ -98,10 +102,17 @@ public class GameDesktopLauncher implements ApplicationListener {
     }
 
     public static void main(String[] args) {
-        GameDesktopLauncher gameDesktopLauncher = new GameDesktopLauncher();
+        AnnotationConfigApplicationContext ctx =
+                new AnnotationConfigApplicationContext("ru.mipt.bit.platformer");
+
+        GameDesktopLauncher gameDesktopLauncher = ctx.getBean(GameDesktopLauncher.class);
+        LevelProperties levelProperties = ctx.getBean(LevelProperties.class);
 
         Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
-        config.setWindowedMode(WIDTH_IN_TILES * N_PIXELS_IN_TILE, HEIGHT_IN_TILES * N_PIXELS_IN_TILE);
+        config.setWindowedMode(
+                levelProperties.getWidth() * levelProperties.getNPixelsInTile(),
+                levelProperties.getHeight() * levelProperties.getNPixelsInTile()
+        );
 
         new Lwjgl3Application(gameDesktopLauncher, config);
     }

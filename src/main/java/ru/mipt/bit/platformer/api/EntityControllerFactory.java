@@ -1,7 +1,10 @@
 package ru.mipt.bit.platformer.api;
 
-import ru.mipt.bit.platformer.controller.EntityController;
+import ru.mipt.bit.platformer.controller.ObstacleController;
+import ru.mipt.bit.platformer.controller.PlayerController;
 
 public interface EntityControllerFactory {
-    <T extends  EntityController<?, ?>> T createEntity(String type, String texturePath, int x, int y, float speed);
+    PlayerController createPlayerController(String texturePath, int x, int y, float speed, int maxHealth);
+
+    ObstacleController createObstacleController(String texturePath, int x, int y);
 }

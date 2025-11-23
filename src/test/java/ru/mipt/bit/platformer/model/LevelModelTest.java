@@ -87,7 +87,7 @@ class LevelModelTest {
     @Test
     void testIsFree_WhenEntityDestinationMatchesPosition_ReturnsFalse() {
         // Arrange
-        PlayerModel playerModel = new PlayerModel(new GridPoint2(5, 5), 1.0f);
+        PlayerModel playerModel = new PlayerModel(new GridPoint2(5, 5), 1.0f, 100);
         levelModel.setPlayerModel(playerModel);
 
         // Act
@@ -118,7 +118,7 @@ class LevelModelTest {
     @Test
     void testIsFree_WhenEntityAtCornerBlocksOnlyThatCell() {
         // Arrange
-        PlayerModel playerModel = new PlayerModel(new GridPoint2(0, 0), 1.0f);
+        PlayerModel playerModel = new PlayerModel(new GridPoint2(0, 0), 1.0f, 100);
         levelModel.setPlayerModel(playerModel);
 
         // Act

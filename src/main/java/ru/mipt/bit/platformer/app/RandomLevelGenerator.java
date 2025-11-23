@@ -1,5 +1,7 @@
 package ru.mipt.bit.platformer.app;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import ru.mipt.bit.platformer.api.EntityControllerFactory;
 import ru.mipt.bit.platformer.controller.ObstacleController;
 import ru.mipt.bit.platformer.controller.PlayerController;
@@ -10,32 +12,45 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
+@Component
 public class RandomLevelGenerator implements LevelGenerator {
-    private final int width;
-    private final int height;
+    private final LevelProperties levelProperties;
     private final int obstacleCount;
     private final int botCount;
-    private final EntityControllerFactory factory;
+
+    private EntityControllerFactory entityControllerFactory;
 
     private final List<ObstacleController> obstacles = new ArrayList<>();
     private final List<PlayerController> bots = new ArrayList<>();
     private final Set<String> occupiedPositions = new HashSet<>();
 
-    public RandomLevelGenerator(int width, int height, EntityControllerFactory factory) {
-        this.width = width;
-        this.height = height;
-        this.factory = factory;
+    @Autowired
+    public RandomLevelGenerator(LevelProperties levelProperties) {
+        this.levelProperties = levelProperties;
+        this.obstacleCount = (int) (0.15 * levelProperties.getWidth() * levelProperties.getHeight());
+        this.botCount = (int) (0.05 * levelProperties.getWidth() * levelProperties.getHeight());
+    }
 
-        this.obstacleCount = (int) (0.15 * width * height);
-        this.botCount = (int) (0.05 * width * height);
+    @Override
+    public void setEntityControllerFactory(EntityControllerFactory entityControllerFactory) {
+        this.entityControllerFactory = entityControllerFactory;
+    }
+
+    @Override
+    public PlayerController generatePlayerController(String texturePath) {
+        GridPosition pos = generateUniquePosition();
+        return entityControllerFactory.createPlayerController(
+                texturePath, pos.x, pos.y, levelProperties.getPlayerMovementSpeed(), levelProperties.getPlayerMaxHealth()
+        );
     }
 
     @Override
     public List<ObstacleController> generateObstacleControllers(String texturePath) {
         for (int i = 0; i < obstacleCount; i++) {
             GridPosition pos = generateUniquePosition();
-            ObstacleController obstacle =
-                    factory.createEntity("obstacle", texturePath, pos.x, pos.y, 0);
+            ObstacleController obstacle = entityControllerFactory.createObstacleController(
+                    texturePath, pos.x, pos.y
+            );
             obstacles.add(obstacle);
             occupiedPositions.add(pos.key());
         }
@@ -43,21 +58,16 @@ public class RandomLevelGenerator implements LevelGenerator {
     }
 
     @Override
-    public List<PlayerController> generateBotControllers(String texturePath, float speed) {
+    public List<PlayerController> generateBotControllers(String texturePath) {
         for (int i = 0; i < botCount; i++) {
             GridPosition pos = generateUniquePosition();
-            PlayerController bot =
-                    factory.createEntity("player", texturePath, pos.x, pos.y, speed);
+            PlayerController bot = entityControllerFactory.createPlayerController(
+                    texturePath, pos.x, pos.y, levelProperties.getBotMovementSpeed(), levelProperties.getBotMaxHealth()
+            );
             bots.add(bot);
             occupiedPositions.add(pos.key());
         }
         return List.copyOf(bots);
-    }
-
-    @Override
-    public PlayerController generatePlayerController(String texturePath, float speed) {
-        GridPosition pos = generateUniquePosition();
-        return factory.createEntity("player", texturePath, pos.x, pos.y, speed);
     }
 
     private GridPosition generateUniquePosition() {
@@ -65,8 +75,8 @@ public class RandomLevelGenerator implements LevelGenerator {
         int x, y;
         String key;
         do {
-            x = random.nextInt(width);
-            y = random.nextInt(height);
+            x = random.nextInt(levelProperties.getWidth());
+            y = random.nextInt(levelProperties.getHeight());
             key = x + "," + y;
         } while (!occupiedPositions.add(key));
         return new GridPosition(x, y);

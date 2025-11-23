@@ -9,10 +9,9 @@ import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class PlayerModel extends EntityModel {
-    private static final int MAX_HEALTH = 100;
-
     private final GridPoint2 destination;
     private final float tankSpeed;
+    private final int maxHealth;
     private final float bulletSpeed;
 
     private int rotation;
@@ -21,22 +20,23 @@ public class PlayerModel extends EntityModel {
     private float movementProgress;
     private float shootingProgress;
 
-    public PlayerModel(GridPoint2 position, float tankSpeed) {
+    public PlayerModel(GridPoint2 position, float tankSpeed, int maxHealth) {
         super(position);
 
         this.destination = new GridPoint2(position);
         this.tankSpeed = tankSpeed;
+        this.maxHealth = maxHealth;
         this.bulletSpeed = 1.5f * tankSpeed;
 
         this.rotation = 0;
-        this.curHealth = ThreadLocalRandom.current().nextInt(80, MAX_HEALTH + 1);
+        this.curHealth = ThreadLocalRandom.current().nextInt((int) (0.8 * maxHealth), maxHealth + 1);
 
         this.movementProgress = 1.0f;
         this.shootingProgress = 1.0f;
     }
 
     public int getMaxHealth() {
-        return MAX_HEALTH;
+        return maxHealth;
     }
 
     public GridPoint2 getDestination() {
