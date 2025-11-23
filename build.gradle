@@ -42,6 +42,8 @@ dependencies {
         runtimeOnly deps.lwjgl.lwjgl_openal_natives_linux
     }
 
+    implementation("org.springframework:spring-context:5.3.32")
+
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.2'
 

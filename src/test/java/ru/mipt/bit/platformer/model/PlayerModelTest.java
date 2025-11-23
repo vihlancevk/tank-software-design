@@ -19,7 +19,7 @@ class PlayerModelTest {
         gameWorld = mock(GameWorld.class);
 
         startPosition = new GridPoint2(0, 0);
-        playerModel = new PlayerModel(startPosition, 1.0f);
+        playerModel = new PlayerModel(startPosition, 1.0f, 100);
     }
 
     @Test

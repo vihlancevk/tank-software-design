@@ -1,8 +1,10 @@
 package ru.mipt.bit.platformer.controller;
 
 import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.math.GridPoint2;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 import ru.mipt.bit.platformer.api.GameWorld;
 import ru.mipt.bit.platformer.app.InputHandler;
 import ru.mipt.bit.platformer.command.Command;
@@ -14,6 +16,8 @@ import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
 
+@Component
+@Scope("prototype")
 public class LevelController implements GameWorld {
     private final Batch batch;
     private final InputHandler inputHandler;
@@ -25,23 +29,12 @@ public class LevelController implements GameWorld {
     private final Set<PlayerController> botControllers = new HashSet<>();
     private final Set<BulletController> bulletControllers = new HashSet<>();
 
-    private LevelController(Batch batch, InputHandler inputHandler, LevelModel levelModel, LevelView levelView) {
+    @Autowired
+    public LevelController(Batch batch, InputHandler inputHandler, LevelModel levelModel, LevelView levelView) {
         this.batch = batch;
         this.inputHandler = inputHandler;
         this.levelModel = levelModel;
         this.levelView = levelView;
-    }
-
-    public static LevelController create(
-            int width,
-            int height,
-            TiledMap tiledMap,
-            Batch batch,
-            InputHandler inputHandler
-    ) {
-        LevelModel model = new LevelModel(width, height);
-        LevelView view = new LevelView(tiledMap, GdxGameUtils.createSingleLayerMapRenderer(tiledMap, batch));
-        return new LevelController(batch, inputHandler, model, view);
     }
 
     @Override

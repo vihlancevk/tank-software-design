@@ -1,5 +1,7 @@
 package ru.mipt.bit.platformer.app;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import ru.mipt.bit.platformer.api.EntityControllerFactory;
 import ru.mipt.bit.platformer.controller.ObstacleController;
 import ru.mipt.bit.platformer.controller.PlayerController;
@@ -11,15 +13,46 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class FileLevelGenerator implements LevelGenerator {
-    private final String filePath;
-    private final EntityControllerFactory entityControllerFactory;
+    private final LevelProperties levelProperties;
+
+    private EntityControllerFactory entityControllerFactory;
 
     private List<String> cachedLines;
 
-    public FileLevelGenerator(String filePath, EntityControllerFactory entityControllerFactory) {
-        this.filePath = filePath;
+    @Autowired
+    public FileLevelGenerator(LevelProperties levelProperties) {
+        this.levelProperties = levelProperties;
+    }
+
+    @Override
+    public void setEntityControllerFactory(EntityControllerFactory entityControllerFactory) {
         this.entityControllerFactory = entityControllerFactory;
+    }
+
+    @Override
+    public PlayerController generatePlayerController(String texturePath) {
+        List<String> lines = getCachedLevelLines();
+
+        for (int y = 0; y < lines.size(); y++) {
+            String line = lines.get(y);
+            for (int x = 0; x < line.length(); x++) {
+                if (line.charAt(x) == 'X') {
+                    return entityControllerFactory.createPlayerController(
+                            texturePath,
+                            x,
+                            lines.size() - 1 - y,
+                            levelProperties.getPlayerMovementSpeed(),
+                            levelProperties.getPlayerMaxHealth()
+                    );
+                }
+            }
+        }
+
+        throw new IllegalStateException(
+                "Player starting position (X) not found in level file: " + levelProperties.getFilePath()
+        );
     }
 
     @Override
@@ -32,9 +65,7 @@ public class FileLevelGenerator implements LevelGenerator {
             for (int x = 0; x < line.length(); x++) {
                 if (line.charAt(x) == 'T') {
                     obstacles.add(
-                            entityControllerFactory.createEntity(
-                                    "obstacle", texturePath, x, lines.size() - 1 - y, 0
-                            )
+                            entityControllerFactory.createObstacleController(texturePath, x, lines.size() - 1 - y)
                     );
                 }
             }
@@ -44,26 +75,8 @@ public class FileLevelGenerator implements LevelGenerator {
     }
 
     @Override
-    public List<PlayerController> generateBotControllers(String texturePath, float speed) {
+    public List<PlayerController> generateBotControllers(String texturePath) {
         return List.of();
-    }
-
-    @Override
-    public PlayerController generatePlayerController(String texturePath, float speed) {
-        List<String> lines = getCachedLevelLines();
-
-        for (int y = 0; y < lines.size(); y++) {
-            String line = lines.get(y);
-            for (int x = 0; x < line.length(); x++) {
-                if (line.charAt(x) == 'X') {
-                    return entityControllerFactory.createEntity(
-                            "player", texturePath, x, lines.size() - 1 - y, speed
-                    );
-                }
-            }
-        }
-
-        throw new IllegalStateException("Player starting position (X) not found in level file: " + filePath);
     }
 
     private List<String> getCachedLevelLines() {
@@ -74,6 +87,7 @@ public class FileLevelGenerator implements LevelGenerator {
     }
 
     private List<String> readLevelFile() {
+        String filePath = levelProperties.getFilePath();
         try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(filePath)) {
             if (inputStream == null) {
                 throw new RuntimeException("Level file not found in resources: " + filePath);
